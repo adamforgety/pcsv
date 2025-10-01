@@ -18,13 +18,13 @@
         }
     </style>
 </head>
-<!-- UPDATED: Reduced body padding on small screens (p-2) to maximize vertical space -->
-<body class="p-2 md:p-8 min-h-screen flex items-center justify-center">
+<!-- UPDATED: Use h-screen to strictly define 100% viewport height and minimal external padding (p-1) -->
+<body class="p-1 h-screen flex items-center justify-center">
 
-    <!-- UPDATED: Added max-h-[98vh] and overflow-y-auto to contain vertical scrolling within the card -->
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-8 max-h-[98vh] overflow-y-auto">
-        <header class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 rotate-1 text-center">
+    <!-- UPDATED: Set explicit height (h-[98%]) and use internal overflow-y-auto -->
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-6 h-[98%] overflow-y-auto">
+        <header class="mb-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 rotate-1 text-center">
                 Piano Chord & Scale Visualizer
             </h1>
             <p class="text-center text-gray-600 text-sm md:text-base">
@@ -33,12 +33,12 @@
         </header>
 
         <!-- Selection Controls: Uses sm:grid-cols-3 for tablet layout -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
 
             <!-- Root Note Selector -->
             <div class="space-y-1">
                 <label for="rootNote" class="block text-sm font-medium text-gray-700">Root Note</label>
-                <select id="rootNote" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
+                <select id="rootNote" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -46,7 +46,7 @@
             <!-- Type Selector (Chords/Scales) -->
             <div class="space-y-1">
                 <label for="type" class="block text-sm font-medium text-gray-700">Chord / Scale Type</label>
-                <select id="type" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
+                <select id="type" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -54,7 +54,7 @@
             <!-- Inversion Selector -->
             <div class="space-y-1">
                 <label for="inversion" class="block text-sm font-medium text-gray-700">Inversion (Chords Only)</label>
-                <select id="inversion" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50" disabled>
+                <select id="inversion" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50" disabled>
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -137,7 +137,7 @@
 
             let baseName;
             if (info.name === info.alt) {
-                baseName = info.name;
+                baseName = info.alt;
             } else if (spellingPreference === 'flat') {
                 baseName = info.alt; 
             } else {
