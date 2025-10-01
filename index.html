@@ -18,10 +18,10 @@
         }
     </style>
 </head>
-<!-- UPDATED: Use h-screen to strictly define 100% viewport height and minimal external padding (p-1) -->
+<!-- Using h-screen to strictly define 100% viewport height and minimal external padding (p-1) -->
 <body class="p-1 h-screen flex items-center justify-center">
 
-    <!-- UPDATED: Set explicit height (h-[98%]) and use internal overflow-y-auto -->
+    <!-- Set explicit height (h-[98%]) and use internal overflow-y-auto to prevent page scrolling -->
     <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-6 h-[98%] overflow-y-auto">
         <header class="mb-6">
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 rotate-1 text-center">
@@ -74,7 +74,7 @@
                 <svg id="pianoSvg" width="100%" height="220" viewBox="0 0 1900 220" preserveAspectRatio="xMidYMid slice"></svg>
             </div>
             
-            <div id="noteDisplay" class="mt-4 text-lg font-mono text-gray-700 h-6 select-all"></div>
+            <!-- Note display element removed here -->
         </div>
     </div>
 
@@ -377,7 +377,7 @@
         const typeSelect = document.getElementById('type');
         const inversionSelect = document.getElementById('inversion');
         const resultName = document.getElementById('resultName');
-        const noteDisplay = document.getElementById('noteDisplay');
+        // Removed noteDisplay variable
 
         function populateSelectors() {
             NOTE_INFO.forEach(info => {
@@ -487,7 +487,7 @@
             drawKeyboard(result.highlighted, viewBoxX, result.rootPreference);
             
             resultName.textContent = result.name;
-            noteDisplay.textContent = result.notesText;
+            // Removed: noteDisplay.textContent = result.notesText;
         }
         
         // Add event listeners for interactivity (handles touch on iPad/mobile)
