@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,9 +18,11 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+<!-- UPDATED: Reduced body padding on small screens (p-2) to maximize vertical space -->
+<body class="p-2 md:p-8 min-h-screen flex items-center justify-center">
 
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-6 md:p-10">
+    <!-- UPDATED: Added max-h-[98vh] and overflow-y-auto to contain vertical scrolling within the card -->
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-8 max-h-[98vh] overflow-y-auto">
         <header class="mb-8">
             <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 rotate-1 text-center">
                 Piano Chord & Scale Visualizer
