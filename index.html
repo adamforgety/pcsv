@@ -66,15 +66,15 @@
             
             <!-- Small Screen Tip (Only visible on mobile/portrait) -->
             <div class="md:hidden w-full text-center text-sm p-2 bg-yellow-100 text-yellow-800 rounded-lg mb-4 key-shadow">
-                💡 Rotate your device to landscape for the best keyboard view!
+                💡 **Swipe left/right** on the keyboard to view all octaves!
             </div>
             
-            <!-- Keyboard Container -->
-            <div id="keyboardContainer" class="relative w-full overflow-x-hidden p-4 bg-gray-100 rounded-lg key-shadow touch-pan-x">
-                <svg id="pianoSvg" width="100%" height="220" viewBox="0 0 1900 220" preserveAspectRatio="xMidYMid slice"></svg>
+            <!-- Keyboard Container: Changed to overflow-x-scroll to enable panning on mobile -->
+            <div id="keyboardContainer" class="relative w-full overflow-x-scroll p-4 bg-gray-100 rounded-lg key-shadow touch-pan-x">
+                <!-- SVG width is now fixed to 1900 to force the container to scroll. Viewbox is set to show the entire 1900 units. -->
+                <svg id="pianoSvg" width="1900" height="220" viewBox="0 0 1900 220" preserveAspectRatio="xMinYMid meet"></svg>
             </div>
             
-            <!-- Note display element removed here -->
         </div>
     </div>
 
@@ -118,7 +118,7 @@
         const KEYBOARD_CONFIG = {
             TOTAL_KEYS: 49, // C3 (0) to C7 (48)
             WHITE_KEYS_COUNT: 29, 
-            KEYBOARD_WIDTH: 1900, // Total SVG width
+            KEYBOARD_WIDTH: 1900, // Total SVG width (fixed pixel width)
             KEYBOARD_HEIGHT: 220, // Total SVG height for clipping prevention
             KEY_Y_START: 10,       // Vertical offset for padding
             WHITE_KEY_HEIGHT: 200, 
@@ -171,6 +171,7 @@
             if (isWhiteKey) {
                 return whiteKeyCount * WKW; 
             } else {
+                // Black key is centered between two white keys, offset by half its width.
                 const x = (whiteKeyCount * WKW) - (BKW / 2);
                 return x;
             }
@@ -225,7 +226,7 @@
                 }
             } else {
                 // Scales usually start lower for better visualization
-                const idealOffset = 12; // Start C3
+                const idealOffset = 12; // Start C4 (index 12 is C4)
                 const candidateHighestSemitone = rootIndex + highestInterval + idealOffset;
 
                 if (candidateHighestSemitone <= maxKeyIndex) {
@@ -245,29 +246,25 @@
             });
 
             const uniqueNotes = Array.from(new Set(highlightedNotes)).sort((a, b) => a - b);
-            const noteNamesArray = uniqueNotes.map(index => getNoteFullName(index, rootPreference)); 
             
             return { 
                 highlighted: uniqueNotes, 
                 name: name, 
-                notesText: noteNamesArray.join(', '), 
                 isScale: definition.isScale || false,
                 rootPreference: rootPreference 
             };
         }
 
         /**
-         * Draws the piano keyboard SVG, highlighting the calculated notes.
+         * Draws the full piano keyboard SVG, highlighting the calculated notes.
+         * Now relies on native browser scrolling for panning.
          */
-        function drawKeyboard(highlightedIndices = [], viewBoxX = 0, rootPreference = 'sharp') {
+        function drawKeyboard(highlightedIndices = [], rootPreference = 'sharp') {
             const svg = document.getElementById('pianoSvg');
             svg.innerHTML = '';
             
-            const keyboardViewHeight = KEYBOARD_CONFIG.KEYBOARD_HEIGHT;
-            const VISIBLE_WIDTH = 950;
-            
-            svg.setAttribute('viewBox', `${viewBoxX} 0 ${VISIBLE_WIDTH} ${keyboardViewHeight}`);
-            
+            // ViewBox is fixed in HTML to 0 0 1900 220 to display the whole keyboard
+
             const WKW = KEYBOARD_CONFIG.WHITE_KEY_WIDTH;
             const BKW = KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
             const WKH = KEYBOARD_CONFIG.WHITE_KEY_HEIGHT;
@@ -283,7 +280,15 @@
             // 1. Draw White Keys (Background)
             for (let i = 0; i < KEYBOARD_CONFIG.TOTAL_KEYS; i++) {
                 const semitoneIndex = i % 12;
-                const noteName = NOTE_INFO[semitoneIndex].name + (3 + Math.floor(i / 12)); 
+                const octave = 3 + Math.floor(i / 12);
+                
+                // Use a slightly different name for notes on the keys
+                let noteNameDisplay = NOTE_INFO[semitoneIndex].name;
+                if (rootPreference === 'flat' && NOTE_INFO[semitoneIndex].alt !== NOTE_INFO[semitoneIndex].name) {
+                    noteNameDisplay = NOTE_INFO[semitoneIndex].alt;
+                }
+                const fullNoteName = noteNameDisplay + octave;
+
 
                 if ([0, 2, 4, 5, 7, 9, 11].includes(semitoneIndex)) {
                     const isHighlighted = highlightedIndices.includes(i);
@@ -308,7 +313,7 @@
                     text.setAttribute('text-anchor', 'middle');
                     text.setAttribute('font-size', '14');
                     text.setAttribute('fill', isHighlighted ? '#ffffff' : '#4b5563'); 
-                    text.textContent = noteName;
+                    text.textContent = fullNoteName;
 
                     svg.appendChild(rect);
                     svg.appendChild(text);
@@ -377,7 +382,6 @@
         const typeSelect = document.getElementById('type');
         const inversionSelect = document.getElementById('inversion');
         const resultName = document.getElementById('resultName');
-        // Removed noteDisplay variable
 
         function populateSelectors() {
             NOTE_INFO.forEach(info => {
@@ -402,7 +406,6 @@
                     const optionFlat = document.createElement('option')
                     optionFlat.value = `${info.id}_flat`; 
                     optionFlat.textContent = info.alt; 
-                    // Removed old Db default selection logic
                     rootNoteSelect.appendChild(optionFlat);
                 }
             });
@@ -424,7 +427,9 @@
             });
         }
         
-        // Main function to update the visualization
+        /**
+         * Main function to update the visualization and scroll to the relevant area.
+         */
         function updateVisualization() {
             const rootValue = rootNoteSelect.value;
             const [rootIndexStr, rootPreference] = rootValue.split('_');
@@ -455,39 +460,32 @@
             const rootInfo = { rootIndex, rootPreference };
             const result = calculateNotes(rootInfo, typeKey, inversionIndex);
             
-            // --- CENTERING LOGIC (Keyboard) ---
-            const VISIBLE_WIDTH = 950;
-            const KEYBOARD_WIDTH = KEYBOARD_CONFIG.KEYBOARD_WIDTH;
-            const highlightedIndices = result.highlighted;
-            let viewBoxX = 0;
-
-            if (highlightedIndices.length > 0) {
-                const firstHighlightedIndex = highlightedIndices[0];
-                const minX = getKeyXPosition(firstHighlightedIndex);
-                const lastHighlightedIndex = highlightedIndices[highlightedIndices.length - 1];
-                const lastXStart = getKeyXPosition(lastHighlightedIndex);
-                
-                const noteMod12 = lastHighlightedIndex % 12;
-                const isWhiteKey = [0, 2, 4, 5, 7, 9, 11].includes(noteMod12);
-                const lastKeyWidth = isWhiteKey ? KEYBOARD_CONFIG.WHITE_KEY_WIDTH : KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
-                const maxX = lastXStart + lastKeyWidth;
-
-                const spanCenter = (minX + maxX) / 2;
-                viewBoxX = spanCenter - (VISIBLE_WIDTH / 2);
-
-                // Clamp the viewBoxX to keep the view within the keyboard bounds
-                viewBoxX = Math.max(0, viewBoxX);
-                viewBoxX = Math.min(KEYBOARD_WIDTH - VISIBLE_WIDTH, viewBoxX);
-            }
-
-            if (KEYBOARD_WIDTH <= VISIBLE_WIDTH) {
-                viewBoxX = 0;
-            }
-
-            drawKeyboard(result.highlighted, viewBoxX, result.rootPreference);
+            drawKeyboard(result.highlighted, result.rootPreference);
             
             resultName.textContent = result.name;
-            // Removed: noteDisplay.textContent = result.notesText;
+            
+            // --- NEW: Scroll to the first highlighted note (usually the root) ---
+            
+            const container = document.getElementById('keyboardContainer');
+            
+            if (result.highlighted.length > 0) {
+                const firstHighlightedIndex = result.highlighted[0];
+                const rootX = getKeyXPosition(firstHighlightedIndex);
+                
+                // Calculate scroll position to center the rootX on the container's screen.
+                const containerWidth = container.offsetWidth;
+                
+                // Adjust position to the left by half the container width
+                const scrollPosition = Math.max(0, rootX - (containerWidth / 2) + 50); // +50 is a small visual offset
+                
+                // Set a small timeout to ensure the DOM has rendered the SVG before scrolling
+                setTimeout(() => {
+                    container.scroll({
+                        left: scrollPosition, 
+                        behavior: 'smooth'
+                    });
+                }, 50);
+            }
         }
         
         // Add event listeners for interactivity (handles touch on iPad/mobile)
