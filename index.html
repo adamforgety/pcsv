@@ -379,6 +379,10 @@
                     const option = document.createElement('option');
                     option.value = `${info.id}_sharp`; // Default to sharp spelling for natural notes
                     option.textContent = info.name;
+                    // Set 'C' (id 0) as the default root note selection
+                    if (info.id === 0) { 
+                        option.selected = true; 
+                    }
                     rootNoteSelect.appendChild(option);
                 } else {
                     // Sharp spelling (C#, D#, F#, G#, A#, E#, B#)
@@ -391,9 +395,7 @@
                     const optionFlat = document.createElement('option')
                     optionFlat.value = `${info.id}_flat`; 
                     optionFlat.textContent = info.alt; 
-                    if (info.alt === 'Db') {
-                        optionFlat.selected = true; 
-                    }
+                    // Removed old Db default selection logic
                     rootNoteSelect.appendChild(optionFlat);
                 }
             });
@@ -402,7 +404,8 @@
                 const option = document.createElement('option');
                 option.textContent = DEFINITIONS[key].name;
                 option.value = key;
-                if(key === 'major_scale') option.selected = true; // Default to Major Scale
+                // Changed default from 'major_scale' to 'major' (Major Chord)
+                if(key === 'major') option.selected = true; 
                 typeSelect.appendChild(option);
             });
 
