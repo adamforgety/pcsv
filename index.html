@@ -18,13 +18,11 @@
         }
     </style>
 </head>
-<!-- Using h-screen to strictly define 100% viewport height and minimal external padding (p-1) -->
-<body class="p-1 h-screen flex items-center justify-center">
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
 
-    <!-- Set explicit height (h-[98%]) and use internal overflow-y-auto to prevent page scrolling -->
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-6 h-[98%] overflow-y-auto">
-        <header class="mb-6">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-1 rotate-1 text-center">
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-6 md:p-10">
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 rotate-1 text-center">
                 Piano Chord & Scale Visualizer
             </h1>
             <p class="text-center text-gray-600 text-sm md:text-base">
@@ -33,12 +31,12 @@
         </header>
 
         <!-- Selection Controls: Uses sm:grid-cols-3 for tablet layout -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
 
             <!-- Root Note Selector -->
             <div class="space-y-1">
                 <label for="rootNote" class="block text-sm font-medium text-gray-700">Root Note</label>
-                <select id="rootNote" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
+                <select id="rootNote" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -46,7 +44,7 @@
             <!-- Type Selector (Chords/Scales) -->
             <div class="space-y-1">
                 <label for="type" class="block text-sm font-medium text-gray-700">Chord / Scale Type</label>
-                <select id="type" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
+                <select id="type" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50">
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -54,7 +52,7 @@
             <!-- Inversion Selector -->
             <div class="space-y-1">
                 <label for="inversion" class="block text-sm font-medium text-gray-700">Inversion (Chords Only)</label>
-                <select id="inversion" class="block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50" disabled>
+                <select id="inversion" class="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-lg rounded-lg border key-shadow bg-gray-50" disabled>
                     <!-- Options populated by JS -->
                 </select>
             </div>
@@ -64,17 +62,12 @@
         <div class="flex flex-col items-center">
             <h2 id="resultName" class="text-xl font-semibold text-gray-800 mb-3 text-center h-6"></h2>
             
-            <!-- Small Screen Tip (Only visible on mobile/portrait) -->
-            <div class="md:hidden w-full text-center text-sm p-2 bg-yellow-100 text-yellow-800 rounded-lg mb-4 key-shadow">
-                💡 **Swipe left/right** on the keyboard to view all octaves!
+            <!-- Keyboard Container -->
+            <div id="keyboardContainer" class="relative w-full overflow-x-hidden p-4 bg-gray-100 rounded-lg key-shadow touch-pan-x">
+                <svg id="pianoSvg" width="100%" height="220" viewBox="0 0 1900 220" preserveAspectRatio="xMidYMid slice"></svg>
             </div>
             
-            <!-- Keyboard Container: Changed to overflow-x-scroll to enable panning on mobile -->
-            <div id="keyboardContainer" class="relative w-full overflow-x-scroll p-4 bg-gray-100 rounded-lg key-shadow touch-pan-x">
-                <!-- SVG width is now fixed to 1900 to force the container to scroll. Viewbox is set to show the entire 1900 units. -->
-                <svg id="pianoSvg" width="1900" height="220" viewBox="0 0 1900 220" preserveAspectRatio="xMinYMid meet"></svg>
-            </div>
-            
+            <div id="noteDisplay" class="mt-4 text-lg font-mono text-gray-700 h-6 select-all"></div>
         </div>
     </div>
 
@@ -118,7 +111,7 @@
         const KEYBOARD_CONFIG = {
             TOTAL_KEYS: 49, // C3 (0) to C7 (48)
             WHITE_KEYS_COUNT: 29, 
-            KEYBOARD_WIDTH: 1900, // Total SVG width (fixed pixel width)
+            KEYBOARD_WIDTH: 1900, // Total SVG width
             KEYBOARD_HEIGHT: 220, // Total SVG height for clipping prevention
             KEY_Y_START: 10,       // Vertical offset for padding
             WHITE_KEY_HEIGHT: 200, 
@@ -137,7 +130,7 @@
 
             let baseName;
             if (info.name === info.alt) {
-                baseName = info.alt;
+                baseName = info.name;
             } else if (spellingPreference === 'flat') {
                 baseName = info.alt; 
             } else {
@@ -171,7 +164,6 @@
             if (isWhiteKey) {
                 return whiteKeyCount * WKW; 
             } else {
-                // Black key is centered between two white keys, offset by half its width.
                 const x = (whiteKeyCount * WKW) - (BKW / 2);
                 return x;
             }
@@ -226,7 +218,7 @@
                 }
             } else {
                 // Scales usually start lower for better visualization
-                const idealOffset = 12; // Start C4 (index 12 is C4)
+                const idealOffset = 12; // Start C3
                 const candidateHighestSemitone = rootIndex + highestInterval + idealOffset;
 
                 if (candidateHighestSemitone <= maxKeyIndex) {
@@ -246,25 +238,29 @@
             });
 
             const uniqueNotes = Array.from(new Set(highlightedNotes)).sort((a, b) => a - b);
+            const noteNamesArray = uniqueNotes.map(index => getNoteFullName(index, rootPreference)); 
             
             return { 
                 highlighted: uniqueNotes, 
                 name: name, 
+                notesText: noteNamesArray.join(', '), 
                 isScale: definition.isScale || false,
                 rootPreference: rootPreference 
             };
         }
 
         /**
-         * Draws the full piano keyboard SVG, highlighting the calculated notes.
-         * Now relies on native browser scrolling for panning.
+         * Draws the piano keyboard SVG, highlighting the calculated notes.
          */
-        function drawKeyboard(highlightedIndices = [], rootPreference = 'sharp') {
+        function drawKeyboard(highlightedIndices = [], viewBoxX = 0, rootPreference = 'sharp') {
             const svg = document.getElementById('pianoSvg');
             svg.innerHTML = '';
             
-            // ViewBox is fixed in HTML to 0 0 1900 220 to display the whole keyboard
-
+            const keyboardViewHeight = KEYBOARD_CONFIG.KEYBOARD_HEIGHT;
+            const VISIBLE_WIDTH = 950;
+            
+            svg.setAttribute('viewBox', `${viewBoxX} 0 ${VISIBLE_WIDTH} ${keyboardViewHeight}`);
+            
             const WKW = KEYBOARD_CONFIG.WHITE_KEY_WIDTH;
             const BKW = KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
             const WKH = KEYBOARD_CONFIG.WHITE_KEY_HEIGHT;
@@ -280,15 +276,7 @@
             // 1. Draw White Keys (Background)
             for (let i = 0; i < KEYBOARD_CONFIG.TOTAL_KEYS; i++) {
                 const semitoneIndex = i % 12;
-                const octave = 3 + Math.floor(i / 12);
-                
-                // Use a slightly different name for notes on the keys
-                let noteNameDisplay = NOTE_INFO[semitoneIndex].name;
-                if (rootPreference === 'flat' && NOTE_INFO[semitoneIndex].alt !== NOTE_INFO[semitoneIndex].name) {
-                    noteNameDisplay = NOTE_INFO[semitoneIndex].alt;
-                }
-                const fullNoteName = noteNameDisplay + octave;
-
+                const noteName = NOTE_INFO[semitoneIndex].name + (3 + Math.floor(i / 12)); 
 
                 if ([0, 2, 4, 5, 7, 9, 11].includes(semitoneIndex)) {
                     const isHighlighted = highlightedIndices.includes(i);
@@ -313,7 +301,7 @@
                     text.setAttribute('text-anchor', 'middle');
                     text.setAttribute('font-size', '14');
                     text.setAttribute('fill', isHighlighted ? '#ffffff' : '#4b5563'); 
-                    text.textContent = fullNoteName;
+                    text.textContent = noteName;
 
                     svg.appendChild(rect);
                     svg.appendChild(text);
@@ -382,6 +370,7 @@
         const typeSelect = document.getElementById('type');
         const inversionSelect = document.getElementById('inversion');
         const resultName = document.getElementById('resultName');
+        const noteDisplay = document.getElementById('noteDisplay');
 
         function populateSelectors() {
             NOTE_INFO.forEach(info => {
@@ -406,6 +395,7 @@
                     const optionFlat = document.createElement('option')
                     optionFlat.value = `${info.id}_flat`; 
                     optionFlat.textContent = info.alt; 
+                    // Removed old Db default selection logic
                     rootNoteSelect.appendChild(optionFlat);
                 }
             });
@@ -427,9 +417,7 @@
             });
         }
         
-        /**
-         * Main function to update the visualization and scroll to the relevant area.
-         */
+        // Main function to update the visualization
         function updateVisualization() {
             const rootValue = rootNoteSelect.value;
             const [rootIndexStr, rootPreference] = rootValue.split('_');
@@ -460,32 +448,39 @@
             const rootInfo = { rootIndex, rootPreference };
             const result = calculateNotes(rootInfo, typeKey, inversionIndex);
             
-            drawKeyboard(result.highlighted, result.rootPreference);
+            // --- CENTERING LOGIC (Keyboard) ---
+            const VISIBLE_WIDTH = 950;
+            const KEYBOARD_WIDTH = KEYBOARD_CONFIG.KEYBOARD_WIDTH;
+            const highlightedIndices = result.highlighted;
+            let viewBoxX = 0;
+
+            if (highlightedIndices.length > 0) {
+                const firstHighlightedIndex = highlightedIndices[0];
+                const minX = getKeyXPosition(firstHighlightedIndex);
+                const lastHighlightedIndex = highlightedIndices[highlightedIndices.length - 1];
+                const lastXStart = getKeyXPosition(lastHighlightedIndex);
+                
+                const noteMod12 = lastHighlightedIndex % 12;
+                const isWhiteKey = [0, 2, 4, 5, 7, 9, 11].includes(noteMod12);
+                const lastKeyWidth = isWhiteKey ? KEYBOARD_CONFIG.WHITE_KEY_WIDTH : KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
+                const maxX = lastXStart + lastKeyWidth;
+
+                const spanCenter = (minX + maxX) / 2;
+                viewBoxX = spanCenter - (VISIBLE_WIDTH / 2);
+
+                // Clamp the viewBoxX to keep the view within the keyboard bounds
+                viewBoxX = Math.max(0, viewBoxX);
+                viewBoxX = Math.min(KEYBOARD_WIDTH - VISIBLE_WIDTH, viewBoxX);
+            }
+
+            if (KEYBOARD_WIDTH <= VISIBLE_WIDTH) {
+                viewBoxX = 0;
+            }
+
+            drawKeyboard(result.highlighted, viewBoxX, result.rootPreference);
             
             resultName.textContent = result.name;
-            
-            // --- NEW: Scroll to the first highlighted note (usually the root) ---
-            
-            const container = document.getElementById('keyboardContainer');
-            
-            if (result.highlighted.length > 0) {
-                const firstHighlightedIndex = result.highlighted[0];
-                const rootX = getKeyXPosition(firstHighlightedIndex);
-                
-                // Calculate scroll position to center the rootX on the container's screen.
-                const containerWidth = container.offsetWidth;
-                
-                // Adjust position to the left by half the container width
-                const scrollPosition = Math.max(0, rootX - (containerWidth / 2) + 50); // +50 is a small visual offset
-                
-                // Set a small timeout to ensure the DOM has rendered the SVG before scrolling
-                setTimeout(() => {
-                    container.scroll({
-                        left: scrollPosition, 
-                        behavior: 'smooth'
-                    });
-                }, 50);
-            }
+            noteDisplay.textContent = result.notesText;
         }
         
         // Add event listeners for interactivity (handles touch on iPad/mobile)
