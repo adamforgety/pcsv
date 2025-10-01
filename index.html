@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -61,6 +61,11 @@
         <!-- Visualization Area -->
         <div class="flex flex-col items-center">
             <h2 id="resultName" class="text-xl font-semibold text-gray-800 mb-3 text-center h-6"></h2>
+            
+            <!-- Small Screen Tip (Only visible on mobile/portrait) -->
+            <div class="md:hidden w-full text-center text-sm p-2 bg-yellow-100 text-yellow-800 rounded-lg mb-4 key-shadow">
+                💡 Rotate your device to landscape for the best keyboard view!
+            </div>
             
             <!-- Keyboard Container -->
             <div id="keyboardContainer" class="relative w-full overflow-x-hidden p-4 bg-gray-100 rounded-lg key-shadow touch-pan-x">
