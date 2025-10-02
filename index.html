@@ -64,6 +64,11 @@
         <div class="flex flex-col items-center">
             <h2 id="resultName" class="text-xl font-semibold text-gray-800 mb-3 text-center h-6"></h2>
             
+            <!-- NEW: Rotate Device Tip (Visible on small screens only) -->
+            <div class="sm:hidden w-full text-center text-sm p-2 bg-indigo-100 text-indigo-800 rounded-lg mb-4 key-shadow">
+                💡 **Tip:** Rotate your device to landscape mode for a wider, clearer view!
+            </div>
+            
             <!-- Keyboard Container: Removed overflow-x-scroll to prevent panning/scrolling -->
             <div id="keyboardContainer" class="relative w-full overflow-x-hidden p-4 bg-gray-100 rounded-lg key-shadow">
                 <!-- SVG width is set to 100% and viewbox will be set dynamically for centering -->
@@ -460,7 +465,7 @@
             const rootInfo = { rootIndex, rootPreference };
             const result = calculateNotes(rootInfo, typeKey, inversionIndex);
             
-            // --- CENTERING LOGIC RE-ADDED ---
+            // --- CENTERING LOGIC ---
             const VISIBLE_WIDTH = 950;
             const KEYBOARD_WIDTH = KEYBOARD_CONFIG.KEYBOARD_WIDTH;
             const highlightedIndices = result.highlighted;
