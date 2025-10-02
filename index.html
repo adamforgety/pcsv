@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <!-- CRITICAL for iPad/Tablet Compatibility -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Piano Visualizer App</title>
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="/manifest.json">
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -560,6 +562,14 @@
         window.onload = () => {
             populateSelectors();
             updateVisualization();
+            
+            // PWA Service Worker Registration
+            if ('serviceWorker' in navigator) {
+                // Use a relative path to ensure correct scoping on GitHub Pages subdirectories
+                navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => console.log('Service Worker registered successfully', reg))
+                .catch(err => console.log('Service Worker registration failed:', err));
+            }
         };
 
         // Handle window resize to ensure responsiveness
