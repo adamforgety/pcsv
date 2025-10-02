@@ -1,0 +1,21 @@
+{
+  "name": "Piano Visualizer",
+  "short_name": "Piano Vis",
+  "description": "Visualize chords and scales on a piano keyboard.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f9fb",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/piano-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/piano-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
