@@ -446,6 +446,7 @@
             const isChord = !isScale;
             inversionSelect.disabled = !isChord;
             
+            // --- Inversion/Chord Logic Check ---
             if (isChord) {
                 const maxAllowedInversion = definition.min_notes - 1;
                 
@@ -474,21 +475,42 @@
             const KEYBOARD_HEIGHT = KEYBOARD_CONFIG.KEYBOARD_HEIGHT;
             const VISIBLE_WIDTH = 950; // Reference width for centering
 
-            if (isScale) {
-                // 1. SCALES: Show full keyboard (1900px wide) and enable container scrolling.
-                
-                // Set SVG size to its actual pixel width (1900px) so the container scrolls.
-                svg.setAttribute('width', `${KEYBOARD_WIDTH}px`);
-                // Set viewBox to show the entire 1900x220 content starting at 0.
-                svg.setAttribute('viewBox', `0 0 ${KEYBOARD_WIDTH} ${KEYBOARD_HEIGHT}`);
-                
-                // Enable scroll on the container
-                keyboardContainer.classList.add('overflow-x-scroll');
-                keyboardContainer.classList.remove('overflow-x-hidden');
-            
-            } else {
-                // 2. CHORDS: Use centering logic (fixed 950px viewbox) and hide scrollbar.
+            // --- 1. ViewBox Centering Logic (Calculates the ideal scroll/viewbox position) ---
+            const highlightedIndices = result.highlighted;
+            let targetScrollX = 0; // This will be the viewBoxX for chords, or scrollLeft for scales
 
+            if (highlightedIndices.length > 0) {
+                const firstHighlightedIndex = highlightedIndices[0];
+                const minX = getKeyXPosition(firstHighlightedIndex);
+                const lastHighlightedIndex = highlightedIndices[highlightedIndices.length - 1];
+                const lastXStart = getKeyXPosition(lastHighlightedIndex);
+                
+                const noteMod12 = lastHighlightedIndex % 12;
+                const isLastKeyWhite = [0, 2, 4, 5, 7, 9, 11].includes(noteMod12);
+                const lastKeyWidth = isLastKeyWhite ? KEYBOARD_CONFIG.WHITE_KEY_WIDTH : KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
+                const maxX = lastXStart + lastKeyWidth;
+
+                // Calculate the center point of the highlighted note range
+                const spanCenter = (minX + maxX) / 2;
+                
+                // Calculate the required offset to center that span center in the view
+                targetScrollX = spanCenter - (VISIBLE_WIDTH / 2);
+
+                // Clamp the scroll/viewBox position to keep the view within the keyboard bounds
+                targetScrollX = Math.max(0, targetScrollX);
+                targetScrollX = Math.min(KEYBOARD_WIDTH - VISIBLE_WIDTH, targetScrollX);
+            }
+            
+            // If the whole keyboard fits, ensure no offset is applied
+            if (KEYBOARD_WIDTH <= VISIBLE_WIDTH) {
+                targetScrollX = 0;
+            }
+
+
+            // --- 2. View Mode (Chord vs. Scale) ---
+            if (isChord) {
+                // CHORDS: Use centering logic (fixed 950px viewbox) and hide scrollbar.
+                
                 // Set SVG size back to 100% of container width for centering/scaling with viewport.
                 svg.setAttribute('width', `100%`);
                 
@@ -496,34 +518,31 @@
                 keyboardContainer.classList.remove('overflow-x-scroll');
                 keyboardContainer.classList.add('overflow-x-hidden');
                 
-                // Recalculate centering viewBoxX
-                const highlightedIndices = result.highlighted;
-                let viewBoxX = 0;
-
-                if (highlightedIndices.length > 0) {
-                    const firstHighlightedIndex = highlightedIndices[0];
-                    const minX = getKeyXPosition(firstHighlightedIndex);
-                    const lastHighlightedIndex = highlightedIndices[highlightedIndices.length - 1];
-                    const lastXStart = getKeyXPosition(lastHighlightedIndex);
-                    
-                    const noteMod12 = lastHighlightedIndex % 12;
-                    const isLastKeyWhite = [0, 2, 4, 5, 7, 9, 11].includes(noteMod12);
-                    const lastKeyWidth = isLastKeyWhite ? KEYBOARD_CONFIG.WHITE_KEY_WIDTH : KEYBOARD_CONFIG.BLACK_KEY_WIDTH;
-                    const maxX = lastXStart + lastKeyWidth;
-
-                    // Calculate the center point of the highlighted note range
-                    const spanCenter = (minX + maxX) / 2;
-                    
-                    // Calculate the required offset to center that span center in the view
-                    viewBoxX = spanCenter - (VISIBLE_WIDTH / 2);
-
-                    // Clamp the viewBoxX to keep the view within the keyboard bounds
-                    viewBoxX = Math.max(0, viewBoxX);
-                    viewBoxX = Math.min(KEYBOARD_WIDTH - VISIBLE_WIDTH, viewBoxX);
-                }
+                // Set the viewBox to zoom/center to the calculated area
+                svg.setAttribute('viewBox', `${targetScrollX} 0 ${VISIBLE_WIDTH} ${KEYBOARD_HEIGHT}`);
                 
-                // Set the viewBox dynamically for centering/zooming to the calculated area
-                svg.setAttribute('viewBox', `${viewBoxX} 0 ${VISIBLE_WIDTH} ${KEYBOARD_HEIGHT}`);
+            } else {
+                // SCALES: Show full keyboard (1900px wide) and enable container scrolling, 
+                // and use targetScrollX to set the initial scroll position.
+                
+                // Set SVG size to its actual pixel width (1900px) so the container scrolls.
+                svg.setAttribute('width', `${KEYBOARD_WIDTH}px`);
+                
+                // Enable scroll on the container
+                keyboardContainer.classList.add('overflow-x-scroll');
+                keyboardContainer.classList.remove('overflow-x-hidden');
+                
+                // Set viewBox to the full 1900px width (no zooming)
+                svg.setAttribute('viewBox', `0 0 ${KEYBOARD_WIDTH} ${KEYBOARD_HEIGHT}`); 
+                
+                // Use requestAnimationFrame to set the scroll position after the DOM has been updated.
+                requestAnimationFrame(() => {
+                    const currentDefinition = DEFINITIONS[typeSelect.value];
+                    // Only scroll if a scale is currently selected
+                    if (currentDefinition && currentDefinition.isScale) {
+                        keyboardContainer.scrollLeft = targetScrollX;
+                    }
+                });
             }
 
             // Draw the keys (this draws the content based on the fixed 1900x220 coordinate system)
