@@ -2,9 +2,7 @@ const CACHE_NAME = "pianoviz-v1";
 const urlsToCache = [
   "./",
   "./index.html",
-  "./manifest.json",
-  "./icons/Pv-192.png",
-  "./icons/Pv-512.png"
+  "./manifest.json"
 ];
 
 self.addEventListener("install", event => {
