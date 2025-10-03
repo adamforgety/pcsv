@@ -1,11 +1,10 @@
-const CACHE_NAME = "piano-visualizer-v1";
+const CACHE_NAME = "pianoviz-v1";
 const urlsToCache = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
-  // Add more files if you have custom JS/CSS
+  "./icons/Pv-192.png",
+  "./icons/Pv-512.png"
 ];
 
 self.addEventListener("install", event => {
